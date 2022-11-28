@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #define n 100
 
 void factoriser_tridiago(float d[n], float c[n], float a[n], float l[n],
@@ -56,7 +57,7 @@ void updateUn(float a[n], float c[n], float d[n], float Un[n]) {
   CopyTab(Un, Un1);
 }
 
-void Un_instant_t (float Unt[n], float instant, float dt, float dx) {
+void Un_instant_t(float Unt[n], float instant, float dt, float dx) {
   float a[n], c[n], d[n];
   float l[n], u[n], v[n];
   float h = dt / (dx * dx);
@@ -68,30 +69,46 @@ void Un_instant_t (float Unt[n], float instant, float dt, float dx) {
     }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
 
   float dt, dx;
   scanf("%f", &dt);
   scanf("%f", &dx);
 
-  float  Un1[n], Un2[n], Un3[n], Un4[n], Un20[n];
 
-  
+  float  Un0[n],Un1[n], Un2[n], Un3[n], Un4[n], Un20[n];
 
+
+//Question 2
+  // float a[n], c[n], d[n];
+  // float l[n], u[n], v[n];
+  // float h = dt / (dx * dx);
+  // init(h, a, c, d);
+  // initU(Un0);
+  // factoriser_tridiago(d, c, a, l, u, v);
+  // for (int i = 0; i*dt < 200; i++)
+  // {
+  //     updateUn(a,c,d,Un0);
+  //     afficher_vect(Un0);
+  // }
+  //Fin de la question 2
+
+
+  //Question 3
   Un_instant_t (Un1, 1, dt, dx);
   Un_instant_t (Un2, 2, dt, dx);
   Un_instant_t (Un3, 3, dt, dx);
   Un_instant_t (Un4, 4, dt, dx);
   Un_instant_t (Un20, 20, dt, dx);
 
-  FILE *out1 = fopen("Un1.txt","wt");
+  FILE *out1 = fopen("question3.txt","wt");
   for(int i = 0; i<n; i++) {
-    fprintf(out1,"%f\t%f\n", i*dx-10, Un1[i]);
+    fprintf(out1,"%f\t%f\t%f\t%f\t%f\t%f\n", i*dx, Un1[i],Un2[i],Un3[i],Un4[i],Un20[i]);
   }
   fclose(out1);
+  system("gnuplot question3.p");
+ //Fin de la question3 
   
-  afficher_vect(Un1);
-  afficher_vect(Un20);
   
   return 0;
 }

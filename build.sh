@@ -1,8 +1,11 @@
-echo $1
-param=$1
-echo $param
 
-if [$param=build];
-then
-    gcc main.c
+param=$1
+
+if [ $param == "build" ]; then
+    gcc 'Projet Maths.c'
+fi
+
+if [ $param == "2" ]; then
+    gcc 'Projet Maths.c'
+    ./a.out
 fi
