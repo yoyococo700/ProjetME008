@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define n 100
+#define TAILLE_INTERVALLE 20
 
 void factoriser_tridiago(float d[n], float c[n], float a[n], float l[n],
                          float u[n], float v[n]) {
@@ -69,7 +71,41 @@ void Un_instant_t(float Unt[n], float instant, float dt, float dx) {
     }
 }
 
+void question3_2(float dt,float dx){
+  int m = 5;
+  float liste_points[5] = {-8,-4,0,4,8};
+
+  float  Unt[n];
+  float a[n], c[n], d[n];
+  float l[n], u[n], v[n];
+  float h = dt / (dx * dx);
+  init(h, a, c, d);
+  initU(Unt);
+  factoriser_tridiago(d, c, a, l, u, v);
+  FILE *out1 = fopen("question3_2.txt","wt");
+  
+  float proportionalite = TAILLE_INTERVALLE/(n*1.0);
+ 
+  for (int i = 0; i * dt < 200; i++) {
+    fprintf( out1, "%f\t", i*dt); //Impression du temps au debut de la ligne 
+    for (int j = 0; j < m; j++)
+    {
+      int k = ((int)(liste_points[j]/proportionalite))+(n/2);
+      fprintf(out1, "%f\t",Unt[k]);
+    }
+    fprintf(out1,"\n");
+    
+    updateUn(a, c, d, Unt);
+  }
+  fclose(out1);
+
+  system("gnuplot question3_2.p");
+}
+
+
 int main(int argc, char *argv[]) {
+
+  question3_2(0.001,1);
 
   float dt, dx;
   scanf("%f", &dt);
