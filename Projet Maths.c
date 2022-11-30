@@ -124,8 +124,8 @@ saved_V* create_empty_savedV(sim_param param){
 
 void free_savedV(saved_V* V){
   int lenght = V->param.N;
-  int nb_lines = (int)(V->param.tmax/V->param.dt);
-  for (int i = 0; i < lenght+1; i++)
+  int nb_lines = (int)(V->param.tmax/V->param.dt)+1;
+  for (int i = 0; i < nb_lines; i++)
   {
     free(V->data[i]);
   }
@@ -386,15 +386,22 @@ float compare_dt(float dt1, float dt2,float dx){
   saved_V* V1 = enregistrer_vect_V(p1);
   saved_V* V2 = enregistrer_vect_V(p2);
 
-  for (int i = 0; i*dt2 < p2.taille_intervalle ; i++)
-  {
-    diff_vect(V1->data[k*i],V2->data[i],res,p2);
-    s+=norme1(res,p1);
-  }   
+  // for (int i = 0; i*dt2 < p2.tmax ; i++)
+  // {
+  //   diff_vect(V1->data[k*i],V2->data[i],res,p2);
+  //   s+=norme1(res,p1);
+  // }
+
+
+  diff_vect(V1->data[(int)(p1.tmax/p1.dt)],V1->data[(int)(p2.tmax/p2.dt)],res,p1);
+  
+
   
   free_savedV(V1);
   free_savedV(V2);
   free(res);
+
+  return norme1(res,p1);
   return s;
 
 }
@@ -411,7 +418,7 @@ void question4(float dt,float dx){
   
   ;
 
-  for (int i = 4; i < 100; i+=2){
+  for (int i = 2; i < 100; i+=2){
     float s = compare_dt(dt,i*dt,dx);
     fprintf(out,"%d\t%f\n",i,s);
     
@@ -423,8 +430,9 @@ void question4(float dt,float dx){
 
 int main(int argc, char *argv[]) {
 
-
-  //printf("%f\n",compare_dt(0.001,2,1));
+  // printf("%f\n",compare_dt(0.001,0.1,1));
+  // printf("%f\n",compare_dt(0.001,1,1));
+  // printf("%f\n",compare_dt(0.001,2,1));
   //question2(0.001,1);
   //question3(0.001,1);
   // question3_2(0.001,1);
