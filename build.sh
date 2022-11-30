@@ -6,6 +6,6 @@ if [ $param == "build" ]; then
 fi
 
 if [ $param == "2" ]; then
-    gcc 'Projet Maths.c'
+    gcc 'Projet Maths.c' -lm
     ./a.out
 fi

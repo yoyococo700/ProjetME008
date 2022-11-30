@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #define n 100
 #define TAILLE_INTERVALLE 20
 
@@ -27,6 +28,17 @@ typedef struct saved_V{
 }saved_V;
 
 
+void affiche_sim_param(sim_param p){
+  printf("---------------Parametres de simulation-----------------\n");
+  printf("Echantillonage spatial N = %d\n",p.N);
+  printf("Duree de la simulation = %f\n",p.tmax);
+  printf("Largeur de la simulation = %f\n",p.taille_intervalle);
+  printf("dt = %f\n",p.dt);
+  printf("dx= %f\n",p.dx);
+  printf("nb_lignes = %d\n",(int)(p.tmax/p.dt)+1);
+  printf("nb_colonne = %d\n", p.N);
+  printf("---------------Fin des parametres de simulation-----------------\n");
+}
 
 sim_param standard_param(float dt,float dx){
   sim_param param;
@@ -34,7 +46,7 @@ sim_param standard_param(float dt,float dx){
   param.dx = dx;
   param.N = n;
   param.taille_intervalle = TAILLE_INTERVALLE;
-  param.tmax = 20;
+  param.tmax = 200;
   return param;
 }
 
@@ -66,36 +78,37 @@ void affiche_saved_V(saved_V* V){
   }  
 }
 
+
 saved_V* create_empty_savedV(sim_param param){
+
   int lenght = param.N;
-  int nb_lines = (int)(param.tmax/param.dt);
+  int nb_lines = (int)(param.tmax/param.dt)+1;
   saved_V* res = (saved_V*)malloc(sizeof(saved_V));
+
   if (res==NULL)
   {
     printf("erreur dans la creation du vecteur\n");
     exit;
   }
-  else
-  {
-    printf("%d\t adresse de res\n",res);
-  }
   
   res->param = param;
   res->data = (float**)malloc(nb_lines*sizeof(float*));
+
   if (res->data==NULL)
   {
     printf("erreur dans la creation du tableau\n");
+    printf("L'erreur provient peut etre du nombre de ligne = %d\n",nb_lines);
     exit;
   }
-  printf("%d\t adresse de res.data\n",res->data);
-  for (int i = 0; i < lenght+1; i++){
+ 
+  for (int i = 0; i < nb_lines; i++){
     res->data[i] = (float*)malloc((lenght+1)*sizeof(float));
     if (res->data[i]==NULL)
     {
       printf("erreur dans la creation du vecteur dans le tableau\n");
       exit;
     }
-    printf("%d\t adresse de res.data[%d]\n",res->data[i],i);
+    
   }
 
   for (int i = 0; i < nb_lines; i++)
@@ -121,17 +134,21 @@ void free_savedV(saved_V* V){
   printf("Destruction du vecteur reussi\n");
 }
 
-
 //Unt[n] = t
 void save_Unt_in_saved_V(saved_V* V,float Unt[],float t,sim_param param){
   if (compare_sim_param(param,V->param))
   { 
     int k = (int)(t/param.dt);
-    printf("%d\n",k);              // k correspond a la ligne d'insertion 
-
-    for (int i = 0; i < param.N; i++)
-      V->data[k][i]=Unt[i];
+    //printf("%d\n",k);              // k correspond a la ligne d'insertion 
+    if (V->data[k]==NULL)
+    {
+      printf("attention, depassement d'indice k=%d\nSortie de la fonction save_unt\n",k);
+      return;
+    }
     
+    for (int i = 0; i < param.N; i++){
+      V->data[k][i]=Unt[i];
+    }
     
     V->data[k][param.N] = t;
   }
@@ -141,17 +158,15 @@ void save_Unt_in_saved_V(saved_V* V,float Unt[],float t,sim_param param){
   }
 }
 
-
-
-void diff_vect(float U1[n],float U2[n], float res[n]){
-  for (int i = 0; i < n; i++)
+void diff_vect(float U1[],float U2[], float res[],sim_param p){
+  for (int i = 0; i < p.N; i++)
     res[i]=U2[i]-U1[i];
 }
 
-float norme1(float U[n]){
+float norme1(float U[],sim_param p){
   float s = 0;
-  for (int i = 0; i < s; i++)
-    s+=U[i];
+  for (int i = 0; i < p.N; i++)
+    s+=fabs(U[i]);
   return s;  
 }
 
@@ -283,20 +298,20 @@ saved_V* enregistrer_vect_V(sim_param param){
 
   saved_V *res = create_empty_savedV(param);
   
+  //affiche_sim_param(param);
 
   init(h, a, c, d);
   initU(Un0);
-  factoriser_tridiago(d, c, a, l, u, v);
+
   for (int i = 0; i*dt < tmax; i++)
   {
       updateUn(a,c,d,Un0);
-      //fprintf(out1,"%f\t",i*dt);
+      //printf("debug enregistrer_vect_V %d\n",i);
       save_Unt_in_saved_V(res,Un0,i*dt,param);
-      //fprintf(out1,"\n");
+      
   }
   return res;
 }
-
 
 void question3(float dt,float dx){
   float  Un1[n], Un2[n], Un3[n], Un4[n], Un20[n];
@@ -361,34 +376,59 @@ float compare_dt(float dt1, float dt2,float dx){
   sim_param p1 = standard_param(dt1,dx);
   sim_param p2 = standard_param(dt2,dx);
 
-  int h = (int)(dt2/dt1);
-  float t1,t2;  
-  float U1[n],U2[n];
+  int k = (int)(dt2/dt1);
+ 
+  float* res = (float*)malloc((p1.N+1)*sizeof(float));
+  float s=0; 
+
 
 
   saved_V* V1 = enregistrer_vect_V(p1);
   saved_V* V2 = enregistrer_vect_V(p2);
 
-  affiche_saved_V(V2);
+  for (int i = 0; i*dt2 < p2.taille_intervalle ; i++)
+  {
+    diff_vect(V1->data[k*i],V2->data[i],res,p2);
+    s+=norme1(res,p1);
+  }   
+  
+  free_savedV(V1);
+  free_savedV(V2);
+  free(res);
+  return s;
+
+}
+
+
+void question4(float dt,float dx){
+
+  FILE* out = fopen("question4.dat","wt");
+  if (out == NULL)
+  {
+    printf("erreur dans la creation du fichier de sortie\n");
+    return;
+  }
+  
+  ;
+
+  for (int i = 4; i < 100; i+=2){
+    float s = compare_dt(dt,i*dt,dx);
+    fprintf(out,"%d\t%f\n",i,s);
     
-    
-    
-    
+  }
+  fclose(out);
+  system("gnuplot question4.p");
 }
 
 
 int main(int argc, char *argv[]) {
 
 
-  saved_V* res = create_empty_savedV(standard_param(0.1,1));
-  affiche_saved_V(res);
-
-  //free_savedV(res);
+  //printf("%f\n",compare_dt(0.001,2,1));
   //question2(0.001,1);
   //question3(0.001,1);
   // question3_2(0.001,1);
-  //compare_dt(0.01,0.01,1);
-  
+  question4(0.001,1);
   
   return 0;
 }
