@@ -5,6 +5,62 @@
 #define TAILLE_INTERVALLE 20
 
 
+typedef struct sim_param{
+  int N;
+  float taille_intervalle;
+  float tmax;
+  float dt;
+  float dx;
+}sim_param;
+
+
+// typedef struct Unt{
+//   sim_param param;
+//   float t;
+//   float *data;
+// }Unt;
+
+typedef struct saved_V{
+  char name[10];
+  sim_param param;
+  float** data;
+}saved_V;
+
+
+
+int compare_sim_param(sim_param param1,sim_param param2){
+  if (param1.dt!=param2.dt)
+    return 0;
+  if (param1.dx!=param2.dx) 
+    return 0;
+  if (param1.N!=param2.N)
+    return 0;
+  if (param1.tmax!=param2.tmax)
+    return 0;
+  if (param1.taille_intervalle!=param2.taille_intervalle)
+    return 0;
+  return 1;
+}
+
+
+//Unt[n] = t
+void save_Unt_in_saved_V(saved_V* V,float Unt[],float t,sim_param param){
+  if (compare_sim_param(param,V->param))
+  {
+    
+    int k = (int)(t/param.dt); //correspond a la ligne d'insertion 
+    //V->data[k]=&Unt;
+    memcpy(V->data[k],Unt,(int)(param.tmax/param.dt));
+
+    V->data[k][(int)((param.tmax/param.dt)+1)] = t;
+  }
+  else{
+    printf("Le vecteur entre ne correspond pas au format desiree\n");
+    printf("Le vecteur n'as pas pu etre enregistre\n");
+  }
+}
+
+
 void diff_vect(float U1[n],float U2[n], float res[n]){
   for (int i = 0; i < n; i++)
     res[i]=U2[i]-U1[i];
@@ -229,9 +285,9 @@ float compare_dt(float tmax, float dt1, float dt2,float dx){
 int main(int argc, char *argv[]) {
 
   //question2(0.001,1);
-  // question3(0.001,1);
+  question3(0.001,1);
   // question3_2(0.001,1);
-  compare_dt(200,0.001,0.001,1);
+  //compare_dt(200,0.001,0.001,1);
   
   
   return 0;
