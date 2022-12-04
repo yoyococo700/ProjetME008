@@ -79,6 +79,7 @@ void affiche_saved_V(saved_V* V){
 }
 
 
+
 saved_V* create_empty_savedV(sim_param param){
 
   int lenght = param.N;
@@ -170,10 +171,6 @@ float norme1(float U[],sim_param p){
   return s;  
 }
 
-float interpolation_lineaire(float t, float dt2){
-  float proportionalite = TAILLE_INTERVALLE/(n*1.0);
-
-}
 
 
 void factoriser_tridiago(float d[n], float c[n], float a[n], float l[n],
@@ -381,28 +378,34 @@ float compare_dt(float dt1, float dt2,float dx){
   float* res = (float*)malloc((p1.N+1)*sizeof(float));
   float s=0; 
 
-
-
-  saved_V* V1 = enregistrer_vect_V(p1);
-  saved_V* V2 = enregistrer_vect_V(p2);
-
-  // for (int i = 0; i*dt2 < p2.tmax ; i++)
-  // {
-  //   diff_vect(V1->data[k*i],V2->data[i],res,p2);
-  //   s+=norme1(res,p1);
-  // }
-
-
-  diff_vect(V1->data[(int)(p1.tmax/p1.dt)],V1->data[(int)(p2.tmax/p2.dt)],res,p1);
-  
+  float  Un1[n],Un2[n];
 
   
-  free_savedV(V1);
-  free_savedV(V2);
-  free(res);
+  float a1[n], c1[n], d1[n];
+  float h1 = dt1 / (dx * dx);
+
+  float a2[n], c2[n], d2[n];
+  float h2 = dt2 / (dx * dx);
+
+  init(h1, a1, c1, d1);
+  initU(Un1);
+
+  init(h2, a2, c2, d2);
+  initU(Un2);
+  
+  for (int i = 0; i*dt1 < p1.tmax; i++)
+  {
+      updateUn(a1,c1,d1,Un1);      
+  }
+
+  for (int i = 0; i*dt2 < p2.tmax ; i++)
+  {
+    updateUn(a2,c2,d2,Un2);  
+  }
+  
+  diff_vect(Un1,Un2,res,p1);
 
   return norme1(res,p1);
-  return s;
 
 }
 
@@ -416,11 +419,11 @@ void question4(float dt,float dx){
     return;
   }
   
-  ;
+  
 
-  for (int i = 2; i < 100; i+=2){
+  for (int i = 100; i*dt < 0.45; i+=2){
     float s = compare_dt(dt,i*dt,dx);
-    fprintf(out,"%d\t%f\n",i,s);
+    fprintf(out,"%f\t%f\n",i*dt,s);
     
   }
   fclose(out);
@@ -434,8 +437,8 @@ int main(int argc, char *argv[]) {
   // printf("%f\n",compare_dt(0.001,1,1));
   // printf("%f\n",compare_dt(0.001,2,1));
   //question2(0.001,1);
-  //question3(0.001,1);
-  // question3_2(0.001,1);
+  //question3(0.55,1);
+  //question3_2(0.001,1);
   question4(0.001,1);
   
   return 0;
